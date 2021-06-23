@@ -1,0 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+
+.form {
+  font-family: Roboto;
+}
+
+.form.form_dark {
+  background-color: darkslategrey;
+}
+
+.form__label {
+  display: block;
+  color: #9898a0;
+  font-size: 14px;
+  padding: 5px 0;
+}
+
+.form__input {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e5e6;
+  background-color: #f2f3f5;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.form__input:focus,
+.form__input:active {
+  outline: none;
+  border: 1px solid #5395e1;
+}

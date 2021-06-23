@@ -1,0 +1,18 @@
+{
+  "inputs": [
+    {
+      "label": "Фамилия",
+      "type": "text",
+      "id": "last_name"
+    },
+    {
+      "label": "Возраст",
+      "type": "number",
+      "id": "age"
+    }
+  ],
+  "submit": {
+    "url": "www.example.com",
+    "text": "Отправить"
+  }
+}
