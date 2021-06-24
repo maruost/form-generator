@@ -1,13 +1,14 @@
 data = {
   attributes: {
-    action: "www.example.com",
+    // action: "www.example.com",
     target: "_blank",
+    id: "flyToMars",
   },
-  className: "flyToMars",
-  styles: { theme: "dark", size: "m" },
   elements: {
     titles: [
-      { h1: { text: "Aнкета" }, h2: { text: "Заявка для полета на Марс" } },
+      {
+        h1: { text: "Заявка на экскурсионный полёт на Марс" },
+      },
     ],
     inputs: [
       {
@@ -15,19 +16,86 @@ data = {
         input: { attributes: { type: "text", id: "last_name" } },
       },
       {
-        label: { attributes: { for: "age" }, text: "Возраст" },
-        input: { attributes: { type: "text", id: "age" } },
+        input: { attributes: { type: "checkbox", id: "changes" } },
+        label: { attributes: { for: "changes" }, text: "ранее не изменялась" },
+      },
+      {
+        label: { attributes: { for: "first_name" }, text: "Имя" },
+        input: { attributes: { type: "text", id: "first_name" } },
+      },
+      {
+        label: { attributes: { for: "middle_name" }, text: "Отчество" },
+        input: { attributes: { type: "text", id: "middle_name" } },
+      },
+      {
+        label: {
+          attributes: { for: "last_name_en" },
+          text: "Фамилия латиницей",
+        },
+        input: { attributes: { type: "text", id: "last_name_en" } },
+      },
+      {
+        label: { attributes: { for: "first_name_en" }, text: "Имя латиницей" },
+        input: { attributes: { type: "text", id: "first_name_en" } },
+      },
+      {
+        label: { attributes: { for: "dob" }, text: "Дата рождения" },
+        input: { attributes: { type: "date", id: "dob" } },
       },
       {
         label: { attributes: { for: "status" }, text: "Семейное положение" },
         select: {
-          options: ["Не женат", "Разведен", "Холост"],
           attributes: { id: "status", name: "status" },
+          elements: {
+            options: [
+              {
+                option: {
+                  attributes: { value: "single" },
+                  text: "Не женат / не замужем",
+                },
+              },
+              {
+                option: {
+                  attributes: { value: "married" },
+                  text: "Женат / замужем",
+                },
+              },
+              {
+                option: {
+                  attributes: { value: "divorced" },
+                  text: "Разведен(а)",
+                },
+              },
+            ],
+          },
         },
       },
       {
-        input: { attributes: { type: "checkbox", id: "changes" } },
-        label: { attributes: { for: "changes" }, text: "ранее не изменялась" },
+        label: { attributes: { for: "about-me" }, text: "Немного о себе" },
+        input: { attributes: { type: "textarea", id: "about-me" } },
+      },
+      {
+        input: {
+          attributes: {
+            type: "radio",
+            id: "gender",
+            name: "gender",
+            value: "female",
+            checked: true,
+          },
+        },
+        label: { attributes: { for: "example" }, text: "Женский" },
+      },
+      {
+        input: {
+          attributes: {
+            type: "radio",
+            id: "gender",
+            name: "gender",
+            value: "male",
+          },
+        },
+        label: { attributes: { for: "example" }, text: "Мужской" },
       },
       {
         input: { attributes: { type: "checkbox", id: "is_good_question" } },
@@ -40,7 +108,7 @@ data = {
     buttons: [
       {
         button: {
-          attributes: { type: "submit", disabled: true },
+          attributes: { type: "submit" },
           text: "Отправить",
         },
       },
@@ -53,14 +121,15 @@ data = {
 
 const formCreator = (jsonData) => {
   const globalData = jsonData;
-  const globalClass = globalData.className;
+  const globalClass = globalData.attributes.id;
   formMarkupCreator(globalData, globalClass);
   const formObj = document.querySelector("form");
   stylesCreator(formObj, globalClass);
+  formInputsHandler(globalClass);
 };
 
 // function creates form markup
-const formMarkupCreator = (jsonData, className) => {
+const formMarkupCreator = (jsonData, globalClass) => {
   const setAttributes = (obj, attributes) => {
     for (let prop in attributes) {
       obj.setAttribute(prop, attributes[prop]);
@@ -71,57 +140,62 @@ const formMarkupCreator = (jsonData, className) => {
     objToAppend.appendChild(elem);
   };
 
-  const setClassName = (elem, className) => {
-    elem.classList.add(className);
+  const setClassName = (elem, prop, type, className) => {
+    const setClassNameDependsOnType = () => {
+      if (type) {
+        return [`${className}__${prop}`, `${className}__${prop}_${type}`];
+      } else {
+        return [`${className}__${prop}`];
+      }
+    };
+    const classNameToken = setClassNameDependsOnType();
+    classNameToken.forEach((token) => elem.classList.add(token));
   };
 
-  const createElement = ({ tag, attributes, options, text }) => {
+  const createElement = ({ tag, attributes, text, objToAppend }) => {
     const elem = document.createElement(tag);
+    console.log("elem", elem);
+    const type = attributes?.type;
+    console.log("type", type);
     setAttributes(elem, attributes);
     text ? (elem.textContent = text) : null;
-
-    //options are nedded for 'select' tag
-    options
-      ? options.forEach((text) => {
-          const option = createElement({ tag: "option", text });
-          appendElement(option, elem);
-        })
-      : null;
+    console.log(elem);
+    appendElement(elem, objToAppend);
+    setClassName(elem, tag, type, globalClass);
     return elem;
   };
 
-  const setElementsToDOM = (arr, objToAppend) => {
-    arr.forEach((elem) => {
-      for (let prop in elem) {
-        const element = createElement({
-          tag: prop,
-          attributes: elem[prop].attributes,
-          options: elem[prop]?.options,
-          text: elem[prop]?.text,
-        });
-        appendElement(element, objToAppend);
-        const setClassDependOnType = () => {
-          if (elem[prop].attributes?.type) {
-            return `${className}__${prop}-${elem[prop].attributes.type}`;
+  const createFormElementsRecursively = (obj, objToAppend) => {
+    for (let element_name in obj) {
+      obj[element_name].forEach((el) => {
+        for (let tag in el) {
+          console.log("attributes", tag.attributes);
+          const elementInDOM = createElement({
+            tag: tag,
+            attributes: el[tag].attributes,
+            text: el[tag].text,
+            objToAppend: objToAppend,
+          });
+          if (el[tag].elements) {
+            console.log("recursion!");
+            createFormElementsRecursively(el[tag].elements, elementInDOM);
           } else {
-            return `${className}__${prop}`;
+            null;
           }
-        };
-        setClassName(element, setClassDependOnType());
-      }
-    });
+        }
+      });
+    }
   };
 
-  const form = createElement({ tag: "form", attributes: jsonData.attributes });
-  appendElement(form, document.body);
-  setClassName(form, className);
+  const form = createElement({
+    tag: "form",
+    attributes: jsonData.attributes,
+    objToAppend: document.body,
+  });
   const formObj = document.querySelector("form");
-
   const formElements = jsonData.elements;
 
-  for (let item in formElements) {
-    setElementsToDOM(formElements[item], formObj);
-  }
+  createFormElementsRecursively(data.elements, formObj);
 };
 
 const stylesCreator = (objToAppend, className) => {
@@ -134,7 +208,7 @@ const stylesCreator = (objToAppend, className) => {
   const generateStyleContent = () => {
     const fonts =
       '@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");';
-    const form = `.${className} {
+    const form = `.${className}__form {
         font-family: Roboto;
         padding: 20px;
         width: 40%;
@@ -144,9 +218,11 @@ const stylesCreator = (objToAppend, className) => {
     const h1 = `.${className}__h1 {
       display: block;
       margin: 10px 0;
-      padding: 0 0;
+      padding: 10px 0;
       font-size: 24px;
       font-weight: 500;
+      width: 100%;
+      border-bottom: 1px solid #e5e5e6;
     }`;
 
     const h2 = `.${className}__h2 {
@@ -157,7 +233,7 @@ const stylesCreator = (objToAppend, className) => {
       font-weight: 500;
     }`;
 
-    const inputText = `.${className}__input-text {
+    const input = `.${className}__input {
         display: block;
         box-sizing: border-box;
         width: 100%;
@@ -168,11 +244,11 @@ const stylesCreator = (objToAppend, className) => {
         font-size: 16px;
       }`;
 
-    const inputTextActions = `.${className}__input-text:focus, .${className}__input-text:active {
+    const inputActions = `.${className}__input:focus, .${className}__input:active {
         outline: none;
         border: 1px solid #5395e1;
       }
-      .${className}__input-text:hover {
+      .${className}__input:hover {
         border: 1px solid #c7c7c7;
       }
       `;
@@ -201,23 +277,23 @@ const stylesCreator = (objToAppend, className) => {
         border: 1px solid #5395e1;
       }`;
 
-    const checkbox = `.${className}__input-checkbox {
+    const checkbox = `.${className}__input_checkbox {
         position: absolute;
         z-index: -1;
         opacity: 0;
       }
-      .${className}__input-checkbox+label {
+      .${className}__input_checkbox+label {
         display: inline-flex;
         align-items: center;
         user-select: none;
         color: #000;
         width: 100%;
       }
-      .${className}__input-checkbox+label:hover {
+      .${className}__input_checkbox+label:hover {
         background-color: #f2f3f5;
         cursor: pointer;
       }
-      .${className}__input-checkbox+label::before {
+      .${className}__input_checkbox+label::before {
         content: '';
         display: inline-block;
         width: 1em;
@@ -229,35 +305,70 @@ const stylesCreator = (objToAppend, className) => {
         margin-right: 0.5em;
         background-repeat: no-repeat;
         background-position: center center;
-        background-size: 50% 50%;
+        background-size: 80% 100%;
       }
-      .${className}__input-checkbox:checked+label::before {
+      .${className}__input_checkbox:checked+label::before {
         border-color: #3f8ae0;
         background-color: #3f8ae0;
-        background-image: url('data:image/svg+xml,<svg height="434pt" viewBox="0 -65 434.67733 434" width="434pt" xmlns="http://www.w3.org/2000/svg"><path d="m152.003906 304.34375c-5.460937 0-10.921875-2.089844-15.082031-6.25l-130.664063-130.667969c-8.34375-8.339843-8.34375-21.824219 0-30.164062 8.339844-8.339844 21.820313-8.339844 30.164063 0l115.582031 115.582031 246.253906-246.25c8.339844-8.339844 21.820313-8.339844 30.164063 0 8.339844 8.34375 8.339844 21.824219 0 30.167969l-261.332031 261.332031c-4.160156 4.160156-9.625 6.25-15.085938 6.25zm0 0"/></svg>');
+        background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sbnM6c3ZnanM9Imh0dHA6Ly9zdmdqcy5jb20vc3ZnanMiIHZlcnNpb249IjEuMSIgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHg9IjAiIHk9IjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTEyIDUxMiIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgY2xhc3M9IiI+PGc+PGcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtOS43MDcgMTkuMTIxYy0uMTg3LjE4OC0uNDQyLjI5My0uNzA3LjI5M3MtLjUyLS4xMDUtLjcwNy0uMjkzbC01LjY0Ni01LjY0N2MtLjU4Ni0uNTg2LS41ODYtMS41MzYgMC0yLjEyMWwuNzA3LS43MDdjLjU4Ni0uNTg2IDEuNTM1LS41ODYgMi4xMjEgMGwzLjUyNSAzLjUyNSA5LjUyNS05LjUyNWMuNTg2LS41ODYgMS41MzYtLjU4NiAyLjEyMSAwbC43MDcuNzA3Yy41ODYuNTg2LjU4NiAxLjUzNiAwIDIuMTIxeiIgZmlsbD0iI2ZmZmZmZiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgc3R5bGU9IiIgY2xhc3M9IiIvPjwvZz48L2c+PC9zdmc+Cg==");
       }`;
 
-    const primaryButton = `.${className}__button-submit {
+    const radio = `.${className}__input_radio {
+        position: absolute;
+        z-index: -1;
+        opacity: 0;
+      }
+      .${className}__input_radio+label {
+        display: inline-flex;
+        align-items: center;
+        user-select: none;
+        color: #000;
+        width: 100%;
+      }
+      .${className}__input_radio+label::before {
+        content: '';
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        flex-shrink: 0;
+        flex-grow: 0;
+        border: 2px solid #e5e5e6;
+        border-radius: 100%;
+        margin-right: 0.5em;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 82% 78%;
+      }
+      .${className}__input_radio:checked+label::before {
+        border-color: #3f8ae0;
+        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcy8+CiAgPHBhdGggeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjM2Y4YWUwIiBkPSJNMjU2IDBDMTE1LjM5IDAgMCAxMTUuMzkgMCAyNTZzMTE1LjM5IDI1NiAyNTYgMjU2IDI1Ni0xMTUuMzkgMjU2LTI1NlMzOTYuNjEgMCAyNTYgMHoiIGRhdGEtb3JpZ2luYWw9IiMwMDAwMDAiLz4KPC9zdmc+Cg==");
+      }`;
+
+    const button = `.${className}__button {
         border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        transition: filter 0.1s ease-in;
+      }
+      .${className}__button:hover {
+        filter: brightness(95%);
+      }`;
+
+    const primaryButton = `.${className}__button_submit {
         background-color: #3f8ae0;
         color: #fff;
-        border-radius: 5px;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-weight: 500;
-        font-size: 14px;
       }`;
 
-    const secondaryButton = `.${className}__button-button {
-        border: none;
+    const secondaryButton = `.${className}__button_button {
         background-color: #f2f3f5;
         color: #3f8ae0;
-        border-radius: 5px;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-weight: 500;
-        box-shadow: none;
-        font-size: 14px;
+      }`;
+
+    const textarea = `.${className}__input_textarea {
+ 
       }`;
 
     return {
@@ -265,14 +376,17 @@ const stylesCreator = (objToAppend, className) => {
       form,
       h1,
       h2,
-      inputText,
-      inputTextActions,
+      input,
+      inputActions,
       label,
       select,
       selectActions,
       checkbox,
+      button,
       primaryButton,
       secondaryButton,
+      textarea,
+      radio,
     };
   };
 
@@ -284,6 +398,32 @@ const stylesCreator = (objToAppend, className) => {
   }
 };
 
-formCreator(data);
+const formInputsHandler = (id) => {
+  const form = document.querySelector(`#${id}`);
+  const inputsArr = form.querySelectorAll("input, select");
+  const submitButton = form.querySelector("button[type=submit]");
+  let userdata = {};
+  const inputsHandler = (e) => {
+    const input = e.target;
+    userdata = { ...userdata, [input.id]: input.checked || input.value };
+    console.log(userdata);
+  };
 
-/// inputs => attributes: [type: {}, id: {}, и т д ];
+  const submitHandler = (e) => {
+    e.preventDefault();
+    console.log(userdata);
+  };
+  inputsArr.forEach((input) => {
+    input.addEventListener("change", (e) => {
+      inputsHandler(e);
+    });
+  });
+
+  form.addEventListener("submit", (e) => {
+    submitHandler(e);
+  });
+
+  const formValidator = () => {};
+};
+
+formCreator(data);
