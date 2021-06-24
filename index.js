@@ -1,19 +1,21 @@
 data = {
   attributes: {
-    // action: "www.example.com",
-    target: "_blank",
+    action: "www.example.com",
     id: "flyToMars",
   },
   elements: {
     titles: [
       {
         h1: { text: "Заявка на экскурсионный полёт на Марс" },
+        h2: { text: "Личная информация" },
       },
     ],
     inputs: [
       {
         label: { attributes: { for: "last_name" }, text: "Фамилия" },
-        input: { attributes: { type: "text", id: "last_name" } },
+        input: {
+          attributes: { type: "text", id: "last_name", required: true },
+        },
       },
       {
         input: { attributes: { type: "checkbox", id: "changes" } },
@@ -74,34 +76,53 @@ data = {
         label: { attributes: { for: "about-me" }, text: "Немного о себе" },
         input: { attributes: { type: "textarea", id: "about-me" } },
       },
+      { label: { text: "Ваш пол" } },
       {
         input: {
           attributes: {
             type: "radio",
-            id: "gender",
+            id: "female",
             name: "gender",
             value: "female",
-            checked: true,
           },
         },
-        label: { attributes: { for: "example" }, text: "Женский" },
+        label: { attributes: { for: "female" }, text: "Женский" },
       },
       {
         input: {
           attributes: {
             type: "radio",
-            id: "gender",
+            id: "male",
             name: "gender",
             value: "male",
           },
         },
-        label: { attributes: { for: "example" }, text: "Мужской" },
+        label: { attributes: { for: "male" }, text: "Мужской" },
+      },
+    ],
+    titles2: [
+      {
+        h2: { text: "Контактная информация" },
+      },
+    ],
+    inputes2: [
+      {
+        label: { attributes: { for: "phone" }, text: "Номер телефона" },
+        input: {
+          attributes: { type: "phone", id: "phone", placeholder: "+7" },
+        },
+      },
+      {
+        label: { attributes: { for: "email" }, text: "Электронная почта" },
+        input: {
+          attributes: { type: "email", id: "email" },
+        },
       },
       {
         input: { attributes: { type: "checkbox", id: "is_good_question" } },
         label: {
           attributes: { for: "is_good_question" },
-          text: "на Марсе классно?",
+          text: "На Марсе классно?",
         },
       },
     ],
@@ -113,7 +134,7 @@ data = {
         },
       },
       {
-        button: { attributes: { type: "button" }, text: "Я передумал" },
+        button: { attributes: { type: "reset" }, text: "Я передумал" },
       },
     ],
   },
@@ -154,12 +175,9 @@ const formMarkupCreator = (jsonData, globalClass) => {
 
   const createElement = ({ tag, attributes, text, objToAppend }) => {
     const elem = document.createElement(tag);
-    console.log("elem", elem);
     const type = attributes?.type;
-    console.log("type", type);
     setAttributes(elem, attributes);
     text ? (elem.textContent = text) : null;
-    console.log(elem);
     appendElement(elem, objToAppend);
     setClassName(elem, tag, type, globalClass);
     return elem;
@@ -169,7 +187,6 @@ const formMarkupCreator = (jsonData, globalClass) => {
     for (let element_name in obj) {
       obj[element_name].forEach((el) => {
         for (let tag in el) {
-          console.log("attributes", tag.attributes);
           const elementInDOM = createElement({
             tag: tag,
             attributes: el[tag].attributes,
@@ -177,7 +194,6 @@ const formMarkupCreator = (jsonData, globalClass) => {
             objToAppend: objToAppend,
           });
           if (el[tag].elements) {
-            console.log("recursion!");
             createFormElementsRecursively(el[tag].elements, elementInDOM);
           } else {
             null;
@@ -242,6 +258,7 @@ const stylesCreator = (objToAppend, className) => {
         background-color: #f2f3f5;
         border-radius: 5px;
         font-size: 16px;
+        margin-bottom: 10px;
       }`;
 
     const inputActions = `.${className}__input:focus, .${className}__input:active {
@@ -267,6 +284,7 @@ const stylesCreator = (objToAppend, className) => {
         background-color: #f2f3f5;
         border-radius: 5px;
         font-size: 16px;
+        margin-bottom: 10px;
       }`;
     const selectActions = `.${className}__select:hover {
         border: 1px solid #c7c7c7;
@@ -323,7 +341,8 @@ const stylesCreator = (objToAppend, className) => {
         align-items: center;
         user-select: none;
         color: #000;
-        width: 100%;
+        cursor: pointer;
+        margin-right: 10px;
       }
       .${className}__input_radio+label::before {
         content: '';
@@ -338,8 +357,10 @@ const stylesCreator = (objToAppend, className) => {
         background-repeat: no-repeat;
         background-position: center center;
         background-size: 82% 78%;
+        transition: transform 0.3s ease-in-out;
       }
       .${className}__input_radio:checked+label::before {
+        transform: scale(1.1);
         border-color: #3f8ae0;
         background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcy8+CiAgPHBhdGggeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjM2Y4YWUwIiBkPSJNMjU2IDBDMTE1LjM5IDAgMCAxMTUuMzkgMCAyNTZzMTE1LjM5IDI1NiAyNTYgMjU2IDI1Ni0xMTUuMzkgMjU2LTI1NlMzOTYuNjEgMCAyNTYgMHoiIGRhdGEtb3JpZ2luYWw9IiMwMDAwMDAiLz4KPC9zdmc+Cg==");
       }`;
@@ -362,7 +383,7 @@ const stylesCreator = (objToAppend, className) => {
         color: #fff;
       }`;
 
-    const secondaryButton = `.${className}__button_button {
+    const secondaryButton = `.${className}__button_reset {
         background-color: #f2f3f5;
         color: #3f8ae0;
       }`;
@@ -401,11 +422,36 @@ const stylesCreator = (objToAppend, className) => {
 const formInputsHandler = (id) => {
   const form = document.querySelector(`#${id}`);
   const inputsArr = form.querySelectorAll("input, select");
-  const submitButton = form.querySelector("button[type=submit]");
   let userdata = {};
+
+  const setInputsValuesDependsInType = (input) => {
+    switch (input.type) {
+      case "radio":
+        userdata = { ...userdata, [input.name]: "" };
+        input.checked
+          ? (userdata = { ...userdata, [input.name]: input.value })
+          : null;
+        break;
+      case "checkbox":
+        userdata = { ...userdata, [input.id]: input.checked };
+        break;
+      default:
+        userdata = { ...userdata, [input.id]: input.value };
+        break;
+    }
+  };
+
+  const setInitialValues = (arr) => {
+    arr.forEach((input) => {
+      setInputsValuesDependsInType(input);
+    });
+  };
+
+  setInitialValues(inputsArr);
+
   const inputsHandler = (e) => {
     const input = e.target;
-    userdata = { ...userdata, [input.id]: input.checked || input.value };
+    setInputsValuesDependsInType(input);
     console.log(userdata);
   };
 
