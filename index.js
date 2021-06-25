@@ -1,6 +1,6 @@
 data = {
   attributes: {
-    action: "www.example.com",
+    // action: "www.example.com",
     id: "flyToMars",
   },
   elements: {
@@ -178,63 +178,65 @@ data = {
 const formCreator = (jsonData) => {
   const globalData = jsonData;
   const globalClass = globalData.attributes.id;
-  formMarkupCreator(globalData, globalClass);
-  const formObj = document.querySelector("form");
-  stylesCreator(formObj, globalClass);
-  formInputsHandler(globalClass);
+  const form = formMarkupCreator(globalData, globalClass, globalData);
+  stylesCreator(form, globalClass, globalData);
+  formInputsHandler(form, globalClass);
+  return form;
 };
 
-// function creates form markup
-const formMarkupCreator = (jsonData, globalClass) => {
-  const setAttributes = (obj, attributes) => {
+// function returns form markup without styles
+const formMarkupCreator = (jsonData, globalClass, dataJson) => {
+  const _setAttributes = (obj, attributes) => {
     for (let prop in attributes) {
       obj.setAttribute(prop, attributes[prop]);
     }
   };
 
-  const appendElement = (elem, objToAppend) => {
+  const _appendElement = (elem, objToAppend) => {
     objToAppend.appendChild(elem);
   };
 
-  const setClassName = (elem, prop, type, className) => {
-    const setClassNameDependsOnType = () => {
+  const _setClassName = (elem, prop, type, className) => {
+    const _setClassNameDependsOnType = () => {
       if (type) {
         return [`${className}__${prop}`, `${className}__${prop}_${type}`];
       } else {
         return [`${className}__${prop}`];
       }
     };
-    const classNameToken = setClassNameDependsOnType();
+    const classNameToken = _setClassNameDependsOnType();
     classNameToken.forEach((token) => elem.classList.add(token));
   };
 
-  const createElement = ({ tag, attributes, text, objToAppend }) => {
+  const _createElement = ({ tag, attributes, text, objToAppend }) => {
     const elem = document.createElement(tag);
     const type = attributes?.type;
-    setAttributes(elem, attributes);
+    _setAttributes(elem, attributes);
     text ? (elem.textContent = text) : null;
-    appendElement(elem, objToAppend);
-    setClassName(elem, tag, type, globalClass);
+    if (tag !== "form") {
+      _appendElement(elem, objToAppend);
+    }
+    _setClassName(elem, tag, type, globalClass);
     return elem;
   };
 
-  const createFormElementsRecursively = (obj, objToAppend) => {
+  const _createFormElementsRecursively = (obj, objToAppend) => {
     for (let element_name in obj) {
       obj[element_name].forEach((el) => {
         let elToAppend = objToAppend;
         if (element_name.includes("input")) {
-          const wrapper = createElement({ tag: "div", objToAppend });
+          const wrapper = _createElement({ tag: "div", objToAppend });
           elToAppend = wrapper;
         }
         for (let tag in el) {
-          const elementInDOM = createElement({
+          const elementInDOM = _createElement({
             tag: tag,
             attributes: el[tag].attributes,
             text: el[tag].text,
             objToAppend: elToAppend,
           });
           if (el[tag].elements) {
-            createFormElementsRecursively(el[tag].elements, elementInDOM);
+            _createFormElementsRecursively(el[tag].elements, elementInDOM);
           } else {
             null;
           }
@@ -243,28 +245,17 @@ const formMarkupCreator = (jsonData, globalClass) => {
     }
   };
 
-  const form = createElement({
-    tag: "form",
-    attributes: jsonData.attributes,
-    objToAppend: document.body,
-  });
-  const formObj = document.querySelector("form");
-  const formElements = jsonData.elements;
-  const formChildren = form.children;
-
-  createFormElementsRecursively(data.elements, formObj);
-
-  const createErrSpanElement = (arr) => {
+  const _createErrSpanElements = (arr) => {
     for (let i = 0, child; (child = arr[i]); i++) {
-      const input = child.querySelector("input", "select");
+      const input = child.querySelector("input, select");
       if (input?.type === "radio") {
-        createElement({
+        _createElement({
           tag: "span",
           attributes: input ? { ["data-id"]: input.name } : null,
           objToAppend: child,
         });
       } else {
-        createElement({
+        _createElement({
           tag: "span",
           attributes: input ? { ["data-id"]: input.id } : null,
           objToAppend: child,
@@ -272,17 +263,27 @@ const formMarkupCreator = (jsonData, globalClass) => {
       }
     }
   };
-  createErrSpanElement(formChildren);
+
+  const form = _createElement({
+    tag: "form",
+    attributes: jsonData.attributes,
+  });
+
+  const formChildren = form.children;
+  _createFormElementsRecursively(dataJson.elements, form);
+  _createErrSpanElements(formChildren);
+
+  return form;
 };
 
-const stylesCreator = (objToAppend, className) => {
-  const createStyleElement = () => {
+// function generate a style sheet and add it to the form markup
+const stylesCreator = (objToAppend, className, dataJson) => {
+  const _createStyleElement = () => {
     const style = document.createElement("style");
     objToAppend.appendChild(style);
+    return style;
   };
-  createStyleElement();
-
-  const generateStyleContent = () => {
+  const _generateStyleSheet = () => {
     const fonts =
       '@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");';
     const form = `.${className}__form {
@@ -291,6 +292,10 @@ const stylesCreator = (objToAppend, className) => {
         width: 40%;
         border: 1px solid #e5e5e6;
       }`;
+
+    const div = `.${className}__div {
+      margin: 5px auto;
+    }`;
 
     const h1 = `.${className}__h1 {
       display: block;
@@ -320,6 +325,10 @@ const stylesCreator = (objToAppend, className) => {
         border-radius: 5px;
         font-size: 16px;
         margin-bottom: 5px;
+      }
+      .${className}__input::placeholder {
+        font-family: Roboto;
+        color: #99a2ad;
       }`;
 
     const inputActions = `.${className}__input:focus, .${className}__input:active {
@@ -346,6 +355,12 @@ const stylesCreator = (objToAppend, className) => {
         border-radius: 5px;
         font-size: 16px;
         margin-bottom: 5px;
+        -webkit-appearance: none; 
+        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NTEuODUgNDUxLjg1Ij4KICA8ZGVmcy8+CiAgPHBhdGggeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjOTlhMmFkIiBkPSJNMjI1LjkyIDM1NC43Yy04LjEgMC0xNi4yLTMuMDktMjIuMzctOS4yNkw5LjI3IDE1MS4xNmEzMS42NCAzMS42NCAwIDExNDQuNzUtNDQuNzVsMTcxLjkgMTcxLjkxIDE3MS45LTE3MS45YTMxLjY0IDMxLjY0IDAgMDE0NC43NSA0NC43NEwyNDguMyAzNDUuNDVhMzEuNTUgMzEuNTUgMCAwMS0yMi4zNyA5LjI2eiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIvPgo8L3N2Zz4K");
+        background-repeat: no-repeat;
+        background-position: bottom 50% right 12px;
+        background-size: 13px;
+
       }`;
     const selectActions = `.${className}__select:hover {
         border: 1px solid #c7c7c7;
@@ -426,6 +441,20 @@ const stylesCreator = (objToAppend, className) => {
         background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcy8+CiAgPHBhdGggeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjM2Y4YWUwIiBkPSJNMjU2IDBDMTE1LjM5IDAgMCAxMTUuMzkgMCAyNTZzMTE1LjM5IDI1NiAyNTYgMjU2IDI1Ni0xMTUuMzkgMjU2LTI1NlMzOTYuNjEgMCAyNTYgMHoiIGRhdGEtb3JpZ2luYWw9IiMwMDAwMDAiLz4KPC9zdmc+Cg==");
       }`;
 
+    const date = `.${className}__input_date {
+      font-family: Roboto;
+      }
+      .${className}__input_date::-webkit-calendar-picker-indicator {
+      color: rgba(0, 0, 0, 0);
+      opacity: 1;
+      background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NTEuODUgNDUxLjg1Ij4KICA8ZGVmcy8+CiAgPHBhdGggeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjOTlhMmFkIiBkPSJNMjI1LjkyIDM1NC43Yy04LjEgMC0xNi4yLTMuMDktMjIuMzctOS4yNkw5LjI3IDE1MS4xNmEzMS42NCAzMS42NCAwIDExNDQuNzUtNDQuNzVsMTcxLjkgMTcxLjkxIDE3MS45LTE3MS45YTMxLjY0IDMxLjY0IDAgMDE0NC43NSA0NC43NEwyNDguMyAzNDUuNDVhMzEuNTUgMzEuNTUgMCAwMS0yMi4zNyA5LjI2eiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIvPgo8L3N2Zz4K") no-repeat;
+      width: 10px;
+      height: 10px;
+      display: block;
+      border-width: thin;
+      cursor: pointer;
+      }`;
+
     const button = `.${className}__button {
         border: none;
         border-radius: 5px;
@@ -483,24 +512,23 @@ const stylesCreator = (objToAppend, className) => {
       radio,
       fieldset,
       span,
+      div,
+      date,
     };
   };
+  const _createStyleTextNodes = (arr, objToAppend) => {
+    for (let style in arr) {
+      const text = document.createTextNode(arr[style]);
+      objToAppend.appendChild(text);
+    }
+  };
 
-  const styleContent = generateStyleContent();
-  for (let style in styleContent) {
-    const text = document.createTextNode(styleContent[style]);
-    const styleObj = document.querySelector("style");
-    styleObj.appendChild(text);
-  }
+  const styleElement = _createStyleElement();
+  const styleSheet = _generateStyleSheet();
+  _createStyleTextNodes(styleSheet, styleElement);
 };
 
-const formInputsHandler = (id) => {
-  const className = id;
-  const form = document.querySelector(`#${id}`);
-  const inputsArr = form.querySelectorAll("input, select");
-  let userdata = {};
-  let errors = {};
-
+const formInputsHandler = (form, id) => {
   const setInputsValuesDependsInType = (input) => {
     switch (input.type) {
       case "radio":
@@ -524,6 +552,10 @@ const formInputsHandler = (id) => {
     });
   };
 
+  const className = id;
+  const inputsArr = form.querySelectorAll("input, select");
+  let userdata = {};
+
   setInitialValues(inputsArr);
 
   const inputsHandler = (e) => {
@@ -533,7 +565,6 @@ const formInputsHandler = (id) => {
   };
 
   const submitHandler = (e) => {
-    e.preventDefault();
     console.log(userdata);
   };
 
@@ -558,6 +589,7 @@ const formInputsHandler = (id) => {
     } else {
       span = form.querySelector(`span[data-id=${target.id}]`);
     }
+    console.log(target, span);
     if (validity !== undefined) {
       if (target.type === "checkbox" && target.required && !target.checked) {
         setSpanErrorText(span, errorMessages.empty);
@@ -603,13 +635,14 @@ const formInputsHandler = (id) => {
     return isValid;
   };
 
+  const button = form.querySelector('button[type="submit"]');
+
   const setSubmitButtonState = (isValid) => {
-    const button = form.querySelector('button[type="submit"]');
     if (!isValid) {
       button.setAttribute("disabled", true);
       button.classList.add(`${className}__button_disabled`);
     } else {
-      button.setAttribute("disabled", false);
+      button.removeAttribute("disabled");
       button.classList.remove(`${className}__button_disabled`);
     }
   };
@@ -624,9 +657,23 @@ const formInputsHandler = (id) => {
     });
   });
 
+  button.addEventListener("click", (e) => {
+    inputsArr.forEach((input) => {
+      setErrorMessage(input);
+      const isValid = isFormValid();
+      setSubmitButtonState(isValid);
+    });
+  });
+
   form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const isValid = isFormValid();
+    setSubmitButtonState(isValid);
     submitHandler(e);
+    form.reset();
   });
 };
 
-formCreator(data);
+const MarsForm = formCreator(data);
+
+document.body.appendChild(MarsForm);
