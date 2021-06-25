@@ -1,187 +1,12 @@
-data = {
-  attributes: {
-    action: "www.example.com",
-    id: "flyToMars",
-  },
-  elements: {
-    titles: [
-      {
-        h1: { text: "Заявка на экскурсионный полёт на Марс" },
-        h2: { text: "Личная информация" },
-      },
-    ],
-    inputs: [
-      {
-        label: { attributes: { for: "last_name" }, text: "Фамилия" },
-        input: {
-          attributes: {
-            type: "text",
-            id: "last_name",
-            required: true,
-            minlength: 2,
-          },
-        },
-      },
-      {
-        input: { attributes: { type: "checkbox", id: "changes" } },
-        label: { attributes: { for: "changes" }, text: "ранее не изменялась" },
-      },
-      {
-        label: { attributes: { for: "first_name" }, text: "Имя" },
-        input: { attributes: { type: "text", id: "first_name" } },
-      },
-      {
-        label: { attributes: { for: "middle_name" }, text: "Отчество" },
-        input: { attributes: { type: "text", id: "middle_name" } },
-      },
-      {
-        label: {
-          attributes: { for: "last_name_en" },
-          text: "Фамилия латиницей",
-        },
-        input: {
-          attributes: {
-            type: "text",
-            id: "last_name_en",
-            pattern: "^([A-Za-z]+)",
-          },
-        },
-      },
-      {
-        label: { attributes: { for: "first_name_en" }, text: "Имя латиницей" },
-        input: {
-          attributes: {
-            type: "text",
-            id: "first_name_en",
-            pattern: "^([A-Za-z]+)",
-          },
-        },
-      },
-      {
-        label: { attributes: { for: "dob" }, text: "Дата рождения" },
-        input: { attributes: { type: "date", id: "dob" } },
-      },
-      {
-        label: { attributes: { for: "status" }, text: "Семейное положение" },
-        select: {
-          attributes: { id: "status", name: "status" },
-          elements: {
-            options: [
-              {
-                option: {
-                  attributes: { value: "single" },
-                  text: "Не женат / не замужем",
-                },
-              },
-              {
-                option: {
-                  attributes: { value: "married" },
-                  text: "Женат / замужем",
-                },
-              },
-              {
-                option: {
-                  attributes: { value: "divorced" },
-                  text: "Разведен(а)",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        label: { attributes: { for: "about-me" }, text: "Немного о себе" },
-        input: { attributes: { type: "textarea", id: "about-me" } },
-      },
-      {
-        label: { text: "Ваш пол" },
-        fieldset: {
-          elements: {
-            radios: [
-              {
-                input: {
-                  attributes: {
-                    type: "radio",
-                    id: "female",
-                    name: "gender",
-                    value: "female",
-                  },
-                },
-                label: { attributes: { for: "female" }, text: "Женский" },
-              },
-              {
-                input: {
-                  attributes: {
-                    type: "radio",
-                    id: "male",
-                    name: "gender",
-                    value: "male",
-                  },
-                },
-                label: { attributes: { for: "male" }, text: "Мужской" },
-              },
-            ],
-          },
-        },
-      },
-    ],
-    titles2: [
-      {
-        h2: { text: "Контактная информация" },
-      },
-    ],
-    inputes2: [
-      {
-        label: { attributes: { for: "phone" }, text: "Номер телефона" },
-        input: {
-          attributes: {
-            type: "tel",
-            id: "phone",
-            placeholder: "+7",
-          },
-        },
-      },
-      {
-        label: { attributes: { for: "email" }, text: "Электронная почта" },
-        input: {
-          attributes: { type: "email", id: "email" },
-        },
-      },
-      {
-        input: {
-          attributes: {
-            type: "checkbox",
-            id: "is_good_question",
-            required: true,
-          },
-        },
-        label: {
-          attributes: { for: "is_good_question" },
-          text: "На Марсе классно?",
-        },
-      },
-    ],
-    buttons: [
-      {
-        button: {
-          attributes: { type: "submit" },
-          text: "Отправить",
-        },
-      },
-      {
-        button: { attributes: { type: "reset" }, text: "Я передумал" },
-      },
-    ],
-  },
-};
-
 class FormCreator {
-  constructor(data) {
-    this.data = data;
-    this.class = data.attributes.id;
+  constructor(json) {
+    const dataObj = JSON.parse(json);
+    this.data = dataObj;
+    this.class = dataObj.attributes.id;
+    this.schema = dataObj.schema;
   }
 
-  formMarkupCreator() {
+  _formMarkupCreator() {
     const _setAttributes = (obj, attributes) => {
       for (let prop in attributes) {
         obj.setAttribute(prop, attributes[prop]);
@@ -192,12 +17,16 @@ class FormCreator {
       objToAppend.appendChild(elem);
     };
 
-    const _setClassName = (elem, prop, type, className) => {
+    const _setClassName = (elem, prop, type, className, schema) => {
       const _setClassNameDependsOnType = () => {
         if (type) {
-          return [`${className}__${prop}`, `${className}__${prop}_${type}`];
+          return [
+            `${className}__${prop}`,
+            `${className}__${prop}_${type}`,
+            `${className}__${prop}_${schema}`,
+          ];
         } else {
-          return [`${className}__${prop}`];
+          return [`${className}__${prop}`, `${className}__${prop}_${schema}`];
         }
       };
       const classNameToken = _setClassNameDependsOnType();
@@ -212,7 +41,7 @@ class FormCreator {
       if (tag !== "form") {
         _appendElement(elem, objToAppend);
       }
-      _setClassName(elem, tag, type, this.class);
+      _setClassName(elem, tag, type, this.class, this.schema);
       return elem;
     };
 
@@ -272,7 +101,7 @@ class FormCreator {
     return form;
   }
 
-  stylesCreator(objToAppend) {
+  _stylesCreator(objToAppend) {
     const _createStyleElement = () => {
       const style = document.createElement("style");
       objToAppend.appendChild(style);
@@ -284,8 +113,12 @@ class FormCreator {
       const form = `.${this.class}__form {
           font-family: Roboto;
           padding: 20px;
-          width: 40%;
+          width: 35%;
           border: 1px solid #e5e5e6;
+        }
+        .${this.class}__form_dark {
+          background-color: #19191a;
+          color: #e1e3e6;
         }`;
 
       const div = `.${this.class}__div {
@@ -294,7 +127,7 @@ class FormCreator {
 
       const h1 = `.${this.class}__h1 {
         display: block;
-        margin: 10px 0;
+        margin: 0 0 10px;
         padding: 10px 0;
         font-size: 24px;
         font-weight: 500;
@@ -315,25 +148,28 @@ class FormCreator {
           box-sizing: border-box;
           width: 100%;
           padding: 10px;
-          border: 1px solid #e5e5e6;
-          background-color: #f2f3f5;
+          border: 1px solid rgba(107, 107, 107, 0.3);
+          background-color: rgba(107, 107, 107, 0.1);
           border-radius: 5px;
           font-size: 16px;
           margin-bottom: 5px;
+          color: inherit;
         }
         .${this.class}__input::placeholder {
           font-family: Roboto;
           color: #99a2ad;
+        }
+        .${this.class}__input_dark {
+        color: 
         }`;
 
-      const inputActions = `.${this.class}__input:focus, .${this.class}__input:active {
+      const inputActions = ` .${this.class}__input:hover {
+        border: 1px solid #c7c7c7;
+        }
+      .${this.class}__input:focus, .${this.class}__input:active {
           outline: none;
           border: 1px solid #5395e1;
-        }
-        .${this.class}__input:hover {
-          border: 1px solid #c7c7c7;
-        }
-        `;
+        }`;
       const label = `.${this.class}__label {
           display: block;
           color: #9898a0;
@@ -345,8 +181,8 @@ class FormCreator {
           box-sizing: border-box;
           width: 100%;
           padding: 10px;
-          border: 1px solid #e5e5e6;
-          background-color: #f2f3f5;
+          border: 1px solid rgba(107, 107, 107, 0.3);
+          background-color: rgba(107, 107, 107, 0.1);
           border-radius: 5px;
           font-size: 16px;
           margin-bottom: 5px;
@@ -355,7 +191,12 @@ class FormCreator {
           background-repeat: no-repeat;
           background-position: bottom 50% right 12px;
           background-size: 13px;
+          color: inherit;
   
+        }`;
+
+      const option = `.${this.class}__option_dark {
+          background-color: #19191a;  
         }`;
       const selectActions = `.${this.class}__select:hover {
           border: 1px solid #c7c7c7;
@@ -375,11 +216,12 @@ class FormCreator {
           display: inline-flex;
           align-items: center;
           user-select: none;
-          color: #000;
+          color: inherit;
           width: 100%;
         }
         .${this.class}__input_checkbox+label:hover {
-          background-color: #f2f3f5;
+          background-color: rgba(107, 107, 107, 0.1);
+          border-radius: 5px;
           cursor: pointer;
         }
         .${this.class}__input_checkbox+label::before {
@@ -389,7 +231,7 @@ class FormCreator {
           height: 1em;
           flex-shrink: 0;
           flex-grow: 0;
-          border: 2px solid #e5e5e6;
+          border: 2px solid rgba(107, 107, 107, 0.3);
           border-radius: 0.25em;
           margin-right: 0.5em;
           background-repeat: no-repeat;
@@ -411,7 +253,7 @@ class FormCreator {
           display: inline-flex;
           align-items: center;
           user-select: none;
-          color: #000;
+          color: inherit;
           cursor: pointer;
           margin-right: 10px;
         }
@@ -422,7 +264,7 @@ class FormCreator {
           height: 1em;
           flex-shrink: 0;
           flex-grow: 0;
-          border: 2px solid #e5e5e6;
+          border: 2px solid rgba(107, 107, 107, 0.3);
           border-radius: 100%;
           margin-right: 0.5em;
           background-repeat: no-repeat;
@@ -458,22 +300,29 @@ class FormCreator {
           font-weight: 500;
           font-size: 14px;
           transition: filter 0.1s ease-in;
+          background-color: #f2f3f5;
+          color: #3f8ae0;
+          margin: 10px 10px 10px 0;
         }
         .${this.class}__button:hover {
           filter: brightness(95%);
         }
         .${this.class}__button_disabled {
           opacity: 0.5;
+        }
+        .${this.class}__button_dark {
+          background-color: #454647;
+          color: #e1e3e6;
         }`;
 
-      const primaryButton = `.${this.class}__button[type='submit'] {
+      const primaryButton = `.${this.class}__button_submit {
           background-color: #3f8ae0;
           color: #fff;
         }`;
 
-      const secondaryButton = `.${this.class}__button[type='reset'] {
-          background-color: #f2f3f5;
-          color: #3f8ae0;
+      const secondaryButton = `.${this.class}__button_reset {
+          background-color: #ff5c5c;
+          color: #fff;
         }`;
 
       const textarea = `.${this.class}__input_textarea {
@@ -509,6 +358,7 @@ class FormCreator {
         span,
         div,
         date,
+        option,
       };
     };
     const _createStyleTextNodes = (arr, objToAppend) => {
@@ -523,7 +373,7 @@ class FormCreator {
     _createStyleTextNodes(styleSheet, styleElement);
   }
 
-  formInputsHandler(form) {
+  _formInputsHandler(form) {
     const ERROR_MESSAGES = {
       empty: "Это обязательное поле",
       tooShort: "Не менее 2-х символов",
@@ -670,12 +520,13 @@ class FormCreator {
       form.reset();
     });
   }
+
+  createForm() {
+    const form = this._formMarkupCreator();
+    this._stylesCreator(form);
+    this._formInputsHandler(form);
+    return form;
+  }
 }
 
-const marsForm = new FormCreator(data);
-
-const form = marsForm.formMarkupCreator();
-marsForm.stylesCreator(form);
-marsForm.formInputsHandler(form);
-
-document.body.appendChild(form);
+export default FormCreator;

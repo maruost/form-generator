@@ -1,18 +1,285 @@
 {
-  "inputs": [
-    {
-      "label": "Фамилия",
-      "type": "text",
-      "id": "last_name"
-    },
-    {
-      "label": "Возраст",
-      "type": "number",
-      "id": "age"
-    }
-  ],
-  "submit": {
-    "url": "www.example.com",
-    "text": "Отправить"
+  "schema": "light",
+  "attributes": {
+    "action": "www.example.com",
+    "id": "flyToMars"
+  },
+  "elements": {
+    "titles": [
+      {
+        "h1": {
+          "text": "Заявка на экскурсионный полёт на Марс"
+        },
+        "h2": {
+          "text": "Личная информация"
+        }
+      }
+    ],
+    "inputs": [
+      {
+        "label": {
+          "attributes": {
+            "for": "last_name"
+          },
+          "text": "Фамилия"
+        },
+        "input": {
+          "attributes": {
+            "type": "text",
+            "id": "last_name",
+            "required": true,
+            "minlength": 2
+          }
+        }
+      },
+      {
+        "input": {
+          "attributes": {
+            "type": "checkbox",
+            "id": "changes"
+          }
+        },
+        "label": {
+          "attributes": {
+            "for": "changes"
+          },
+          "text": "ранее не изменялась"
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "first_name"
+          },
+          "text": "Имя"
+        },
+        "input": {
+          "attributes": {
+            "type": "text",
+            "id": "first_name"
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "middle_name"
+          },
+          "text": "Отчество"
+        },
+        "input": {
+          "attributes": {
+            "type": "text",
+            "id": "middle_name"
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "last_name_en"
+          },
+          "text": "Фамилия латиницей"
+        },
+        "input": {
+          "attributes": {
+            "type": "text",
+            "id": "last_name_en",
+            "pattern": "^([A-Za-z]+)"
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "first_name_en"
+          },
+          "text": "Имя латиницей"
+        },
+        "input": {
+          "attributes": {
+            "type": "text",
+            "id": "first_name_en",
+            "pattern": "^([A-Za-z]+)"
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "dob"
+          },
+          "text": "Дата рождения"
+        },
+        "input": {
+          "attributes": {
+            "type": "date",
+            "id": "dob"
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "status"
+          },
+          "text": "Семейное положение"
+        },
+        "select": {
+          "attributes": {
+            "id": "status",
+            "name": "status"
+          },
+          "elements": {
+            "options": [
+              {
+                "option": {
+                  "attributes": {
+                    "value": "single"
+                  },
+                  "text": "Не женат / не замужем"
+                }
+              },
+              {
+                "option": {
+                  "attributes": {
+                    "value": "married"
+                  },
+                  "text": "Женат / замужем"
+                }
+              },
+              {
+                "option": {
+                  "attributes": {
+                    "value": "divorced"
+                  },
+                  "text": "Разведен(а)"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "about-me"
+          },
+          "text": "Немного о себе"
+        },
+        "input": {
+          "attributes": {
+            "type": "textarea",
+            "id": "about-me"
+          }
+        }
+      },
+      {
+        "label": {
+          "text": "Ваш пол"
+        },
+        "fieldset": {
+          "elements": {
+            "radios": [
+              {
+                "input": {
+                  "attributes": {
+                    "type": "radio",
+                    "id": "female",
+                    "name": "gender",
+                    "value": "female"
+                  }
+                },
+                "label": {
+                  "attributes": {
+                    "for": "female"
+                  },
+                  "text": "Женский"
+                }
+              },
+              {
+                "input": {
+                  "attributes": {
+                    "type": "radio",
+                    "id": "male",
+                    "name": "gender",
+                    "value": "male"
+                  }
+                },
+                "label": {
+                  "attributes": {
+                    "for": "male"
+                  },
+                  "text": "Мужской"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "titles2": [
+      {
+        "h2": {
+          "text": "Контактная информация"
+        }
+      }
+    ],
+    "inputes2": [
+      {
+        "label": {
+          "attributes": {
+            "for": "phone"
+          },
+          "text": "Номер телефона"
+        },
+        "input": {
+          "attributes": {
+            "type": "tel",
+            "id": "phone",
+            "placeholder": "+7"
+          }
+        }
+      },
+      {
+        "label": {
+          "attributes": {
+            "for": "email"
+          },
+          "text": "Электронная почта"
+        },
+        "input": {
+          "attributes": {
+            "type": "email",
+            "id": "email"
+          }
+        }
+      },
+      {
+        "input": {
+          "attributes": {
+            "type": "checkbox",
+            "id": "is_good_question",
+            "required": true
+          }
+        },
+        "label": {
+          "attributes": {
+            "for": "is_good_question"
+          },
+          "text": "На Марсе классно?"
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "button": {
+          "attributes": {
+            "type": "submit"
+          },
+          "text": "Отправить"
+        }
+      }
+    ]
   }
 }
