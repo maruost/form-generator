@@ -14,7 +14,12 @@ data = {
       {
         label: { attributes: { for: "last_name" }, text: "Фамилия" },
         input: {
-          attributes: { type: "text", id: "last_name", required: true },
+          attributes: {
+            type: "text",
+            id: "last_name",
+            required: true,
+            minlength: 2,
+          },
         },
       },
       {
@@ -34,11 +39,23 @@ data = {
           attributes: { for: "last_name_en" },
           text: "Фамилия латиницей",
         },
-        input: { attributes: { type: "text", id: "last_name_en" } },
+        input: {
+          attributes: {
+            type: "text",
+            id: "last_name_en",
+            pattern: "^([A-Za-z]+)",
+          },
+        },
       },
       {
         label: { attributes: { for: "first_name_en" }, text: "Имя латиницей" },
-        input: { attributes: { type: "text", id: "first_name_en" } },
+        input: {
+          attributes: {
+            type: "text",
+            id: "first_name_en",
+            pattern: "^([A-Za-z]+)",
+          },
+        },
       },
       {
         label: { attributes: { for: "dob" }, text: "Дата рождения" },
@@ -76,28 +93,36 @@ data = {
         label: { attributes: { for: "about-me" }, text: "Немного о себе" },
         input: { attributes: { type: "textarea", id: "about-me" } },
       },
-      { label: { text: "Ваш пол" } },
       {
-        input: {
-          attributes: {
-            type: "radio",
-            id: "female",
-            name: "gender",
-            value: "female",
+        label: { text: "Ваш пол" },
+        fieldset: {
+          elements: {
+            radios: [
+              {
+                input: {
+                  attributes: {
+                    type: "radio",
+                    id: "female",
+                    name: "gender",
+                    value: "female",
+                  },
+                },
+                label: { attributes: { for: "female" }, text: "Женский" },
+              },
+              {
+                input: {
+                  attributes: {
+                    type: "radio",
+                    id: "male",
+                    name: "gender",
+                    value: "male",
+                  },
+                },
+                label: { attributes: { for: "male" }, text: "Мужской" },
+              },
+            ],
           },
         },
-        label: { attributes: { for: "female" }, text: "Женский" },
-      },
-      {
-        input: {
-          attributes: {
-            type: "radio",
-            id: "male",
-            name: "gender",
-            value: "male",
-          },
-        },
-        label: { attributes: { for: "male" }, text: "Мужской" },
       },
     ],
     titles2: [
@@ -109,7 +134,11 @@ data = {
       {
         label: { attributes: { for: "phone" }, text: "Номер телефона" },
         input: {
-          attributes: { type: "phone", id: "phone", placeholder: "+7" },
+          attributes: {
+            type: "tel",
+            id: "phone",
+            placeholder: "+7",
+          },
         },
       },
       {
@@ -119,7 +148,13 @@ data = {
         },
       },
       {
-        input: { attributes: { type: "checkbox", id: "is_good_question" } },
+        input: {
+          attributes: {
+            type: "checkbox",
+            id: "is_good_question",
+            required: true,
+          },
+        },
         label: {
           attributes: { for: "is_good_question" },
           text: "На Марсе классно?",
@@ -186,12 +221,17 @@ const formMarkupCreator = (jsonData, globalClass) => {
   const createFormElementsRecursively = (obj, objToAppend) => {
     for (let element_name in obj) {
       obj[element_name].forEach((el) => {
+        let elToAppend = objToAppend;
+        if (element_name.includes("input")) {
+          const wrapper = createElement({ tag: "div", objToAppend });
+          elToAppend = wrapper;
+        }
         for (let tag in el) {
           const elementInDOM = createElement({
             tag: tag,
             attributes: el[tag].attributes,
             text: el[tag].text,
-            objToAppend: objToAppend,
+            objToAppend: elToAppend,
           });
           if (el[tag].elements) {
             createFormElementsRecursively(el[tag].elements, elementInDOM);
@@ -210,8 +250,29 @@ const formMarkupCreator = (jsonData, globalClass) => {
   });
   const formObj = document.querySelector("form");
   const formElements = jsonData.elements;
+  const formChildren = form.children;
 
   createFormElementsRecursively(data.elements, formObj);
+
+  const createErrSpanElement = (arr) => {
+    for (let i = 0, child; (child = arr[i]); i++) {
+      const input = child.querySelector("input", "select");
+      if (input?.type === "radio") {
+        createElement({
+          tag: "span",
+          attributes: input ? { ["data-id"]: input.name } : null,
+          objToAppend: child,
+        });
+      } else {
+        createElement({
+          tag: "span",
+          attributes: input ? { ["data-id"]: input.id } : null,
+          objToAppend: child,
+        });
+      }
+    }
+  };
+  createErrSpanElement(formChildren);
 };
 
 const stylesCreator = (objToAppend, className) => {
@@ -258,7 +319,7 @@ const stylesCreator = (objToAppend, className) => {
         background-color: #f2f3f5;
         border-radius: 5px;
         font-size: 16px;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
       }`;
 
     const inputActions = `.${className}__input:focus, .${className}__input:active {
@@ -284,7 +345,7 @@ const stylesCreator = (objToAppend, className) => {
         background-color: #f2f3f5;
         border-radius: 5px;
         font-size: 16px;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
       }`;
     const selectActions = `.${className}__select:hover {
         border: 1px solid #c7c7c7;
@@ -376,20 +437,32 @@ const stylesCreator = (objToAppend, className) => {
       }
       .${className}__button:hover {
         filter: brightness(95%);
+      }
+      .${className}__button_disabled {
+        opacity: 0.5;
       }`;
 
-    const primaryButton = `.${className}__button_submit {
+    const primaryButton = `.${className}__button[type='submit'] {
         background-color: #3f8ae0;
         color: #fff;
       }`;
 
-    const secondaryButton = `.${className}__button_reset {
+    const secondaryButton = `.${className}__button[type='reset'] {
         background-color: #f2f3f5;
         color: #3f8ae0;
       }`;
 
     const textarea = `.${className}__input_textarea {
  
+      }`;
+
+    const fieldset = `.${className}__fieldset {
+        border: none;
+      }`;
+
+    const span = `.${className}__span {
+        font-size: 12px;
+        color: red;
       }`;
 
     return {
@@ -408,6 +481,8 @@ const stylesCreator = (objToAppend, className) => {
       secondaryButton,
       textarea,
       radio,
+      fieldset,
+      span,
     };
   };
 
@@ -420,9 +495,11 @@ const stylesCreator = (objToAppend, className) => {
 };
 
 const formInputsHandler = (id) => {
+  const className = id;
   const form = document.querySelector(`#${id}`);
   const inputsArr = form.querySelectorAll("input, select");
   let userdata = {};
+  let errors = {};
 
   const setInputsValuesDependsInType = (input) => {
     switch (input.type) {
@@ -459,17 +536,97 @@ const formInputsHandler = (id) => {
     e.preventDefault();
     console.log(userdata);
   };
+
+  const errorMessages = {
+    empty: "Это обязательное поле",
+    tooShort: "Не менее 2-х символов",
+    tooLong: "Не более 30 символов",
+    wrongEmail: "Введите действующий e-mail",
+    wrongTel: "Введите номер телефона в формате +7(XXX)XXX-XX-XX",
+    wrongFormat: "Неверный формат вводимых данных",
+  };
+
+  const setSpanErrorText = (span, message) => {
+    span.textContent = message;
+  };
+
+  const setErrorMessage = (target) => {
+    let span = "";
+    const validity = target.validity;
+    if (target.type === "radio") {
+      span = form.querySelector(`span[data-id=${target.name}]`);
+    } else {
+      span = form.querySelector(`span[data-id=${target.id}]`);
+    }
+    if (validity !== undefined) {
+      if (target.type === "checkbox" && target.required && !target.checked) {
+        setSpanErrorText(span, errorMessages.empty);
+        return;
+      }
+      if (validity.valueMissing) {
+        setSpanErrorText(span, errorMessages.empty);
+        return;
+      }
+      if (validity.tooShort) {
+        setSpanErrorText(span, errorMessages.tooShort);
+        return;
+      }
+      if (validity.tooLong) {
+        setSpanErrorText(span, errorMessages.tooLong);
+        return;
+      }
+      if (validity.patternMismatch || validity.typeMismatch) {
+        switch (target.type) {
+          case "email":
+            setSpanErrorText(span, errorMessages.wrongEmail);
+            break;
+          case "tel":
+            setSpanErrorText(span, errorMessages.wrongTel);
+            break;
+          default:
+            setSpanErrorText(span, errorMessages.wrongFormat);
+        }
+        return;
+      }
+      if (validity.valid) {
+        setSpanErrorText(span, "");
+        return;
+      }
+    } else {
+      setSpanErrorText(span, errorMessages.validationMessage);
+      return;
+    }
+  };
+
+  const isFormValid = () => {
+    const isValid = form.checkValidity();
+    return isValid;
+  };
+
+  const setSubmitButtonState = (isValid) => {
+    const button = form.querySelector('button[type="submit"]');
+    if (!isValid) {
+      button.setAttribute("disabled", true);
+      button.classList.add(`${className}__button_disabled`);
+    } else {
+      button.setAttribute("disabled", false);
+      button.classList.remove(`${className}__button_disabled`);
+    }
+  };
+
   inputsArr.forEach((input) => {
-    input.addEventListener("change", (e) => {
+    input.addEventListener("input", (e) => {
+      console.log("change");
       inputsHandler(e);
+      setErrorMessage(e.target);
+      const isValid = isFormValid();
+      setSubmitButtonState(isValid);
     });
   });
 
   form.addEventListener("submit", (e) => {
     submitHandler(e);
   });
-
-  const formValidator = () => {};
 };
 
 formCreator(data);
