@@ -4,6 +4,8 @@ class FormCreator {
     this.data = dataObj;
     this.class = dataObj.attributes.id;
     this.schema = dataObj.schema;
+    this.action = dataObj.action;
+    this.userdata = {};
   }
 
   _formMarkupCreator() {
@@ -14,7 +16,7 @@ class FormCreator {
     };
 
     const _appendElement = (elem, objToAppend) => {
-      objToAppend.appendChild(elem);
+      objToAppend ? objToAppend.appendChild(elem) : null;
     };
 
     const _setClassName = (elem, prop, type, className, schema) => {
@@ -38,9 +40,7 @@ class FormCreator {
       const type = attributes?.type;
       _setAttributes(elem, attributes);
       text ? (elem.textContent = text) : null;
-      if (tag !== "form") {
-        _appendElement(elem, objToAppend);
-      }
+      _appendElement(elem, objToAppend);
       _setClassName(elem, tag, type, this.class, this.schema);
       return elem;
     };
@@ -72,19 +72,21 @@ class FormCreator {
 
     const _createErrSpanElements = (arr) => {
       for (let i = 0, child; (child = arr[i]); i++) {
-        const input = child.querySelector("input, select");
-        if (input?.type === "radio") {
-          _createElement({
-            tag: "span",
-            attributes: input ? { ["data-id"]: input.name } : null,
-            objToAppend: child,
-          });
-        } else {
-          _createElement({
-            tag: "span",
-            attributes: input ? { ["data-id"]: input.id } : null,
-            objToAppend: child,
-          });
+        if (child.tagName === "DIV") {
+          const input = child.querySelector("input, select");
+          if (input?.type === "radio") {
+            const span = _createElement({
+              tag: "span",
+              attributes: input ? { ["data-id"]: input.name } : null,
+            });
+            child.append(span);
+          } else {
+            const span = _createElement({
+              tag: "span",
+              attributes: input ? { ["data-id"]: input.id } : null,
+            });
+            child.append(span);
+          }
         }
       }
     };
@@ -382,20 +384,19 @@ class FormCreator {
       wrongTel: "Введите номер телефона в формате +7(XXX)XXX-XX-XX",
       wrongFormat: "Неверный формат вводимых данных",
     };
-    let userdata = {};
     const _setInputsValuesDependsInType = (input) => {
       switch (input.type) {
         case "radio":
-          userdata = { ...userdata, [input.name]: "" };
+          this.userdata = { ...this.userdata, [input.name]: "" };
           input.checked
-            ? (userdata = { ...userdata, [input.name]: input.value })
+            ? (this.userdata = { ...this.userdata, [input.name]: input.value })
             : null;
           break;
         case "checkbox":
-          userdata = { ...userdata, [input.id]: input.checked };
+          this.userdata = { ...this.userdata, [input.id]: input.checked };
           break;
         default:
-          userdata = { ...userdata, [input.id]: input.value };
+          this.userdata = { ...this.userdata, [input.id]: input.value };
           break;
       }
     };
@@ -410,8 +411,26 @@ class FormCreator {
       const input = e.target;
       _setInputsValuesDependsInType(input);
     };
+
+    const _sendFromToServer = (data, url) => {
+      const _checkStatus = (res) => {
+        if (!res.ok) {
+          return Promise.reject(res.status);
+        } else {
+          return res.json();
+        }
+      };
+
+      return fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
+      }).then((res) => _checkStatus(res));
+    };
+
     const _submitHandler = (e) => {
-      console.log("final data to send:", userdata);
+      console.log("final data to send:", this.userdata);
+      _sendFromToServer(this.action, this.userdata);
     };
 
     const _formValidator = () => {
@@ -518,6 +537,7 @@ class FormCreator {
       setSubmitButtonState(button, isValid);
       _submitHandler(e);
       form.reset();
+      _setInitialValues(inputsArr);
     });
   }
 
