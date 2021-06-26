@@ -47,26 +47,22 @@ FormCreator принимает в качестве параметра JSON ст�
  
  **elements** - массив дочерних элементов, добавляются к родительскому;  
  **text** - отображаемый текст для label и элементов с текстовыми узлами;  
- **elements_group** - группа однородных элементов, каждый объект в массиве - элемент формы. Название группы произвольное, названия не должны повторяться. Для группы инпутов в названии должно присутствовать слово 'input'. Каждый элемент группы инпутов оборачивается в 'div';  
+ **elements_group** - группа однородных элементов, каждый объект в массиве - элемент формы. Название группы произвольное, названия не должны повторяться. Для группы инпутов в названии должно присутствовать слово 'input'. Каждый элемент группы инпутов генератором оборачивается в 'div', последним дочерним элементом 'div' является span - элемент, необходимый для отражения ошибок валидации.
  **element** - элемент DOM дерева. Название элемента соответствует тегу. Стилизованные элементы: *input (типы: checkbox, radio, date, text), select, option, fieldset, label, h1, h2, button (типы: button, submit, reset)*  
 
 #### Формат возвращаемой вёрстки: 
 Пример: 
 ```html
 <form action="www.example.com" id="flyToMars" class="flyToMars__form flyToMars__form_light">
-  <h1 class="flyToMars__h1 flyToMars__h1_light">Заявка на экскурсионный полёт на Марс
-    <span class="flyToMars__span flyToMars__span_light"></span>
-  </h1>
-  <h2 class="flyToMars__h2 flyToMars__h2_light">
-    Личная информация<span class="flyToMars__span flyToMars__span_light"></span>
-  </h2>
+  <h1 class="flyToMars__h1 flyToMars__h1_light">Заявка на экскурсионный полёт на Марc</h1>
+  <h2 class="flyToMars__h2 flyToMars__h2_light">Личная информация</h2>
   <div class="flyToMars__div flyToMars__div_light">
     <label for="last_name" class="flyToMars__label flyToMars__label_light">Фамилия</label>
     <input type="text" id="last_name" required="true" minlength="2" class="flyToMars__input flyToMars__input_text flyToMars__input_light"/>
     <span data-id="last_name" class="flyToMars__span flyToMars__span_light"></span>
   </div>
   ...
-  <button type="submit" class="flyToMars__button flyToMars__button_submit flyToMars__button_light">Отправить<span class="flyToMars__span flyToMars__span_light"></span></button
+  <button type="submit" class="flyToMars__button flyToMars__button_submit flyToMars__button_light">Отправить</button
   >
   ...
   <style>
