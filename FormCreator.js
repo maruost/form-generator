@@ -4,7 +4,7 @@ class FormCreator {
     this.data = dataObj;
     this.class = dataObj.attributes.id;
     this.schema = dataObj.schema;
-    this.action = dataObj.action;
+    this.url = dataObj.attributes.action;
     this.userdata = {};
   }
 
@@ -412,7 +412,7 @@ class FormCreator {
       _setInputsValuesDependsInType(input);
     };
 
-    const _sendFromToServer = (data, url) => {
+    const _sendFromToServer = (url, data) => {
       const _checkStatus = (res) => {
         if (!res.ok) {
           return Promise.reject(res.status);
@@ -424,13 +424,12 @@ class FormCreator {
       return fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data }),
+        body: JSON.stringify(data),
       }).then((res) => _checkStatus(res));
     };
 
     const _submitHandler = (e) => {
-      console.log("final data to send:", this.userdata);
-      _sendFromToServer(this.action, this.userdata);
+      _sendFromToServer(this.url, this.userdata);
     };
 
     const _formValidator = () => {
