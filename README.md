@@ -7,8 +7,8 @@ import FormCreator from "./FormCreator.js"
 ```
 #### Использование: 
 ```js
-const form = new FormCreator(json); 
-const formElement = form.createForm(); // <form>...</form>
+const formCreator = new FormCreator(json); 
+const formElement = formCreator.createForm(); // <form>...</form>
 ```
 FormCreator принимает в качестве параметра JSON строку и преобразует её в JS объект. Метод `createFrom` возвращает готовую верстку формы.
 #### Формат `JSON`:
