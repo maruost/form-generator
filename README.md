@@ -86,7 +86,7 @@ FormCreator принимает в качестве параметра JSON ст�
 }
 ``` 
 
-Пример `JSON` схемы находится в json_example.json в папке examples данного репозитория.
+Пример `JSON` схемы находится в json_example.json в папке example данного репозитория.
 Превью формы по схеме из json_example.json (dark и light mode):  
 
-![preview](https://github.com/maruost/vk-intern/blob/main/example/prev-form-dark.gif) ![preview](https://github.com/maruost/vk-intern/blob/main/example/prev-form-light.PNG)
+![preview](https://github.com/maruost/form-generator/blob/main/example/prev-form-dark.gif) ![preview](https://github.com/maruost/form-generator/blob/main/example/prev-form-light.PNG)
